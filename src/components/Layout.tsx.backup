@@ -1,0 +1,148 @@
+import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/components/ThemeProvider';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Moon, Sun, LayoutDashboard, Store, History, CreditCard, Gift, ArrowUpDown, Settings } from 'lucide-react';
+import { RedeemCodeModal } from '@/components/RedeemCodeModal';
+
+
+import Screenshot_2025_07_27_at_7_05_57_PM from "@assets/Screenshot 2025-07-27 at 7.05.57 PM.png";
+
+
+// Logo images for theme switching
+const LightModeLogo = "/attached_assets/Screenshot 2025-07-27 at 7.03.27 PM_1753668269479.png";
+const DarkModeLogo = "/attached_assets/Screenshot 2025-07-27 at 7.05.57 PM_1753668368160.png";
+
+interface LayoutProps {
+  children: React.ReactNode;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  showTabs?: boolean;
+}
+
+export default function Layout({ children, activeTab, onTabChange, showTabs = true }: LayoutProps) {
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <div className="flex items-center">
+              <button 
+                onClick={() => onTabChange('dashboard')}
+                className="flex-shrink-0 hover:opacity-80 transition-opacity duration-200 cursor-pointer"
+                aria-label="Go to Dashboard"
+              >
+                {/* Light theme logo - visible in light mode, hidden in dark mode */}
+                <img 
+                  src="attached_assets/Screenshot 2025-07-27 at 7.03.27 PM.png"
+                  alt="Vrno Token Market"
+                  className="object-contain h-10 w-auto dark:hidden"
+                />
+                {/* Dark theme logo - hidden in light mode, visible in dark mode */}
+                <img 
+                  src={Screenshot_2025_07_27_at_7_05_57_PM}
+                  alt="Vrno Token Market"
+                  className="object-contain h-10 w-auto hidden dark:block"
+                />
+              </button>
+            </div>
+
+            {/* User Menu */}
+            <div className="flex items-center space-x-4">
+              {/* Theme Toggle */}
+              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+
+              {/* User Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>{user?.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuItem onClick={() => onTabChange('profile')}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    My Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowRedeemModal(true)}>
+                    <Gift className="mr-2 h-4 w-4" />
+                    Redeem Code
+                  </DropdownMenuItem>
+                  {user?.id === 'aa6a6db5-aef3-416b-b441-abe53dc0f9a6' && (
+                    <DropdownMenuItem onClick={() => onTabChange('admin')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={logout}>
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+      </header>
+      {/* Navigation Tabs */}
+      {showTabs && (
+        <div className="bg-background border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+              <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
+                <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </TabsTrigger>
+                <TabsTrigger value="marketplace" className="flex items-center gap-2">
+                  <Store className="h-4 w-4" />
+                  <span className="hidden sm:inline">Marketplace</span>
+                </TabsTrigger>
+                <TabsTrigger value="transactions" className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  <span className="hidden sm:inline">Transactions</span>
+                </TabsTrigger>
+                <TabsTrigger value="exchange" className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                  <span className="hidden sm:inline">Exchange</span>
+                  <span className="text-xs bg-red-500 text-white px-1 rounded ml-1">Beta</span>
+                </TabsTrigger>
+                <TabsTrigger value="topup" className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  <span className="hidden sm:inline">Top-up</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+      )}
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </main>
+      {/* Modals */}
+      <RedeemCodeModal
+        isOpen={showRedeemModal}
+        onClose={() => setShowRedeemModal(false)}
+      />
+    </div>
+  );
+}
